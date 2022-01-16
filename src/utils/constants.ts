@@ -33,3 +33,17 @@ export const versioning: VersioningType = {
     'H610A', 'H6059', 'H7028', 'H6198', 'H6049',
   ],
 };
+
+interface Endpoints {
+  getDevices: (version: string) => string;
+}
+
+export const endpoints: Endpoints = {
+  getDevices: (version) => `${version}/devices`,
+};
+
+export interface APIResponseData<D> {
+  code: number;
+  message: 'success' | string;
+  data: D;
+}

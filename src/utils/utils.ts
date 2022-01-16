@@ -18,3 +18,11 @@ export function detectVersion(device: string): number {
 
   return actualVersion;
 };
+
+/**
+ * Get last version of the API
+ * @return {number}
+ */
+export function getLastVersion(): number {
+  return Object.keys(versioning).map(Number).sort((a, b) => b - a)[0];
+}

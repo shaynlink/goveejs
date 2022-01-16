@@ -1,4 +1,4 @@
-import {detectVersion} from '../src/utils/utils';
+import {detectVersion, getLastVersion} from '../src/utils/utils';
 
 describe('Utilities', () => {
   it('detect version', () => {
@@ -8,5 +8,9 @@ describe('Utilities', () => {
     expect(detectVersion(devices.shift())).toBe(1.2);
     expect(detectVersion(devices.shift())).toBe(1.3);
     expect(detectVersion(devices.shift())).toBe(1.4);
+  });
+
+  it('get lastest version', () => {
+    expect(getLastVersion()).toBe(1.4);
   });
 });

@@ -1,6 +1,6 @@
 import {EventEmitter} from 'events';
-import Device from '../class/Device';
 import Rest from '../api/Rest';
+import DeviceManager from '../class/managers/DeviceManager';
 
 /**
  * @class Client
@@ -10,13 +10,20 @@ import Rest from '../api/Rest';
  *
  * client.device.list()
  *  .then((devices) => console.log('%s devices found', devices.length));
+ *
+ * client.on('newDevice', (devices) => {
+ *  console.log('New device found: %s', devices.length);
+ * })
+ *
+ * client.sync();
  */
 class Client extends EventEmitter {
   public apikey: string;
   public version: number;
-  public devices: Map<string, Device>;
+  public devices: DeviceManager;
+  public rest: Rest;
   public synchronize: boolean;
-  public getDevice: () => Promise<Device[]>;
+  public timer: NodeJS.Timer | null;
 
   /**
    * Authentificate the client
@@ -39,39 +46,49 @@ class Client extends EventEmitter {
      */
     this.apikey = apikey || process.env.GOVEE_API_KEY as string;
 
-    this.devices = new Map();
+    this.devices = new DeviceManager(this);
 
     this.rest = new Rest(this);
 
     this.synchronize = false;
 
-    this.
-  }
-
-  /**
-   * Get device list and store it in the client
-   * @param {boolean} storeIt
-   * @return {Promise<Device[]>}
-   */
-  public async getDevices(storeIt: true): Promise<Device[]> {
-    return this.rest.request('GET', '/devices', this)
-        .then((devices: Device[]) => {
-          if (!!storeIt) {
-            devices.forEach((device: Device) =>
-              this.devices.set(device.device, device));
-          }
-        });
+    this.timer = null;
   }
 
   /**
    * Syncronize the client
+   * @return {Device}
    */
-  public sync(): Map<string, Device> {
+  public sync(): this {
     if (this.synchronize) {
-      return this.devices;
-    };
+      return this;
+    }
 
-    
+    this.synchronize = true;
+
+    this.timer = setTimeout(async () => {
+      await this.devices.getDevices(true);
+      this.timer = null;
+
+      this.sync();
+    }, 1000 * 60);
+
+    return this;
+  }
+
+  /**
+   * Unsyncronize the client
+   * @return {void}
+   */
+  public unsync(): void {
+    if (this.timer) {
+      clearTimeout(this.timer);
+    }
+
+    this.timer = null;
+    this.synchronize = false;
+
+    return void 0;
   }
 }
 

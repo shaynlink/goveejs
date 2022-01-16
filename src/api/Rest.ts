@@ -1,6 +1,14 @@
-import axios, {AxiosInstance, AxiosResponse, AxiosRequestConfig} from 'axios';
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponseTransformer,
+  AxiosResponseHeaders,
+  Method,
+  AxiosPromise,
+} from 'axios';
 import Client from '../client/Client';
 import Queue from './Queue';
+import Device from '../class/Device';
 
 type availableModel = 'H6160' | 'H6163' |
 'H6104' | 'H6109' | 'H6110' | 'H6117' | 'H6159' | 'H7022' | 'H6086' | 'H6089' |
@@ -61,7 +69,7 @@ class Rest {
         'Govee-API-Key': this.client.apikey,
       },
       timeout: 1000,
-      transformRequest: [Rest.transform],
+      transformResponse: [this.responseTransform] as AxiosResponseTransformer[],
     };
 
     this.instance = axios.create(this.config);
@@ -69,9 +77,30 @@ class Rest {
 
   /**
    * Parse response from API
-   * @param {AxiosRequestTransformer}
+   * @param {any} data
+   * @param {AxiosResponseHeaders} headers
    */
-  static transform() {}
+  private responseTransform(data: any, headers: AxiosResponseHeaders): void {}
+
+  /**
+   * Make request to API
+   * @param {Method} method
+   * @param {string} path
+   * @param {[any, any]} params
+   * @return {Promise<any>}
+   */
+  public request(
+      method: Method,
+      path: string,
+      [data, headers]: [any, any] = [{}, {}],
+  ): AxiosPromise<any> {
+    return this.instance({
+      url: path,
+      method,
+      data,
+      headers: headers,
+    });
+  }
 }
 
 export default Rest;
