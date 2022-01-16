@@ -30,11 +30,14 @@ class Client extends EventEmitter {
    * @param {string} apikey
    * @param {number} version
    */
-  constructor(apikey: string) {
+  constructor(
+      apikey: string,
+      version = parseFloat(process.env.GOVEE_API_VERSION as string),
+  ) {
     super();
     if (
-      !apikey ||
-      typeof apikey !== 'string' ||
+      !apikey &&
+      typeof apikey !== 'string' &&
       !('GOVEE_API_KEY' in process.env)
     ) {
       throw new Error('apikey is required');
@@ -45,6 +48,8 @@ class Client extends EventEmitter {
      * Govee app -> My profile -> settings -> About us -> Apply for API Key
      */
     this.apikey = apikey || process.env.GOVEE_API_KEY as string;
+
+    this.version = version || 1;
 
     this.devices = new DeviceManager(this);
 
@@ -59,14 +64,23 @@ class Client extends EventEmitter {
    * Syncronize the client
    * @return {Device}
    */
-  public sync(): this {
+  public async sync(): Promise<this> {
     if (this.synchronize) {
       return this;
     }
 
+    this.emit('debug', '[Client] Syncronize enable');
+
     this.synchronize = true;
 
+    this.emit('debug', '[Client] Syncronize');
+
+    await this.devices.getDevices(true);
+    this.timer = null;
+
     this.timer = setTimeout(async () => {
+      this.emit('debug', '[Client] Syncronize');
+
       await this.devices.getDevices(true);
       this.timer = null;
 
@@ -81,6 +95,8 @@ class Client extends EventEmitter {
    * @return {void}
    */
   public unsync(): void {
+    this.emit('debug', '[Client] Syncronize disable');
+
     if (this.timer) {
       clearTimeout(this.timer);
     }

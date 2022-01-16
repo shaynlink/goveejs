@@ -1,14 +1,11 @@
 import axios, {
   AxiosInstance,
   AxiosRequestConfig,
-  AxiosResponseTransformer,
-  AxiosResponseHeaders,
   Method,
   AxiosPromise,
 } from 'axios';
 import Client from '../client/Client';
 import Queue from './Queue';
-import Device from '../class/Device';
 
 type availableModel = 'H6160' | 'H6163' |
 'H6104' | 'H6109' | 'H6110' | 'H6117' | 'H6159' | 'H7022' | 'H6086' | 'H6089' |
@@ -23,12 +20,19 @@ type availableModel = 'H6160' | 'H6163' |
 'H618E' | 'H619E' | 'H605B' | 'H6087' | 'H6172' | 'H619B' | 'H619D' | 'H619Z' |
 'H61A0' | 'H7060' | 'H610A' | 'H6059' | 'H7028' | 'H6198' | 'H6049';
 
+export type cmdName = 'turn' | 'brightness' | 'color' | 'colorTern';
+export type cmdValue = 'on' | 'off' | number | {
+  r: number,
+  g: number,
+  b: number
+};
+
 interface RequestStucture {
   device: string;
   model: availableModel;
   cmd?: {
-    name: 'turn' | 'brightness' | 'color' | 'colorTern';
-    value: 'on' | 'off' | number | { r: number, g: number, b: number };
+    name: cmdName;
+    value: cmdValue;
   }
 }
 
@@ -67,33 +71,29 @@ class Rest {
       headers: {
         'Content-Type': 'application/json',
         'Govee-API-Key': this.client.apikey,
+        'User-Agent': 'goveejs (https://github.com/shaynlink/goveejs)',
       },
       timeout: 1000,
-      transformResponse: [this.responseTransform] as AxiosResponseTransformer[],
     };
 
     this.instance = axios.create(this.config);
   }
 
   /**
-   * Parse response from API
-   * @param {any} data
-   * @param {AxiosResponseHeaders} headers
-   */
-  private responseTransform(data: any, headers: AxiosResponseHeaders): void {}
-
-  /**
    * Make request to API
    * @param {Method} method
    * @param {string} path
-   * @param {[any, any]} params
+   * @param {any} data
+   * @param {any} headers
    * @return {Promise<any>}
    */
   public request(
       method: Method,
       path: string,
-      [data, headers]: [any, any] = [{}, {}],
+      data: any = {},
+      headers: any = {},
   ): AxiosPromise<any> {
+    this.client.emit('debug', '[Rest] Request: %s %s', method, path);
     return this.instance({
       url: path,
       method,

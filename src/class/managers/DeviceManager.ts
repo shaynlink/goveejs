@@ -4,27 +4,40 @@ import {
   APIResponseData,
   endpoints,
 } from '../../utils/constants';
-import {getLastVersion} from '../../utils/utils';
 import {AxiosPromise} from 'axios';
+import {cmdName} from '../../api/Rest';
 
-type supportCmds = 'turn' | 'brightness' | 'color' | 'colorTem';
+export interface DataResponse {
+  devices: DataResponseDevice[];
+}
 
-interface DataResponseDevice {
-  devices: {
-    // Product Model of your device.
-    model: string;
-    // Mac address of your device.
-    // Use device and model to identify the target one device.
-    device: string;
-    // Controllable will be true when the device support command
-    // to control.
-    controllable: true | false;
-    // Retrievable will be true when the device support querying
-    // the current device state.
-    retrievable: true | false;
-    // Commands supported by the device.
-    supportCmds: supportCmds[];
+export interface PropertiesDevice {
+  colorTerm?: {
+    range?: {
+      min: number;
+      max: number;
+    }
   }
+}
+
+export interface DataResponseDevice {
+  // Product Model of your device.
+  model: string;
+  // Mac address of your device.
+  // Use device and model to identify the target one device.
+  device: string;
+  // Controllable will be true when the device support command
+  // to control.
+  controllable: true | false;
+  // Retrievable will be true when the device support querying
+  // the current device state.
+  retrievable: true | false;
+  // Commands supported by the device.
+  supportCmds: cmdName[];
+  // Name of device
+  deviceName?: string;
+  // Properties of device
+  properties?: PropertiesDevice;
 }
 
 /**
@@ -46,11 +59,17 @@ class DeviceManager {
 
   /**
    * Return Device class list
-   * @param {APIResponseData<DataResponseDevice[]>} data
+   * @param {APIResponseData<DataResponse>} data
    * @return {Device[]}
    */
-  private decode(data: APIResponseData<DataResponseDevice[]>): Device[] {
+  private decode(data: APIResponseData<DataResponse>): Device[] {
+    const devices: Device[] = [];
 
+    for (const device of data.data.devices) {
+      devices.push(new Device(device, this.client));
+    }
+
+    return devices;
   };
 
   /**
@@ -62,8 +81,8 @@ class DeviceManager {
     return (
       this.client.rest.request(
           'GET',
-          endpoints.getDevices(String(getLastVersion())),
-      ) as AxiosPromise<APIResponseData<DataResponseDevice[]>>)
+          endpoints.getDevices,
+      ) as AxiosPromise<APIResponseData<DataResponse>>)
         .then((response) => {
           let errMessage: string = '';
 
@@ -75,6 +94,7 @@ class DeviceManager {
 
           if (response.data.code != 200) {
             errMessage = `Failed to get devices: ${response.data.message}`;
+            this.client.emit('error', errMessage);
             throw new Error(errMessage);
           }
 

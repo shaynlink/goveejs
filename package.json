@@ -1,7 +1,7 @@
 {
   "name": "goveejs",
   "version": "1.0.0",
-  "description": "",
+  "description": "Goovejs is a library object-based for managing your devices from Goove",
   "main": "index.js",
   "scripts": {
     "test": "jest",
@@ -9,6 +9,70 @@
     "lint": "eslint --ext .js,.ts src test",
     "prepublish": "npm run test && npm run lint"
   },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "engineStrict": false,
+  "typings": "./typings/index.d.ts",
+  "types": "./typings/index.d.ts",
+  "resolutions": {
+    "./typings/index.d.ts": "./typings/index.d.ts"
+  },
+  "readme": "# GoobeJs is a library object-based for managing your devices from Goove",
+  "bin": "./dist",
+  "categories": [
+    "Themes",
+    "Visualization",
+    "Testing"
+  ],
+  "contributes": {
+    "github": "https://github.com/shaynlink/goveejs/graphs/contributors"
+  },
+  "cpu": [
+    "x64",
+    "arm64",
+    "arm",
+    "x32",
+    "x86",
+    "x86-64"
+  ],
+  "directories": {
+    "bin": "./dist",
+    "example": "./example",
+    "lib": "./src",
+    "test": "./test"
+  },
+  "exports": "./dist/index.js",
+  "files": [
+    "./dist/*"
+  ],
+  "keywords": [
+    "goveejs",
+    "govee",
+    "hardware",
+    "device",
+    "led control",
+    "led",
+    "light",
+    "light control"
+  ],
+  "markdown": "github",
+  "maintainers": [
+    {
+      "name": "shaynlink",
+      "email": "shaynlinkpro@gmail.com",
+      "url": "https://shaynlink.dev"
+    }
+  ],
+  "packageManager": "npm@8.1.0",
+  "preferGlobal": false,
+  "private": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "publisher": "shaynlink",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/shaynlink/goveejs.git"
